@@ -123,13 +123,80 @@ K2 -> PC13
 
 注意：这一课的 `Key_Scan()` 会等待按键松开，因此长按不会一直重复触发；但它还不是严格的机械按键消抖实现。
 
+### Lesson 02：USART1 串口通信
+
+路径：
+
+```text
+lessons/lesson-02-usart/21-USART—串口通信/USART1接发
+```
+
+这一课的作用：
+
+- 建立 USART1 调试输出能力。
+- 使用板载 CH340 USB 转串口连接 Windows 串口助手。
+- 通过蓝灯心跳确认固件运行，通过串口输出确认通信链路。
+
+关键文件：
+
+- `User/main.c`：初始化蓝灯和 USART1，循环输出 `USART OK`。
+- `User/usart/bsp_usart.c`：USART1 GPIO、外设和接收中断初始化，发送函数实现。
+- `User/usart/bsp_usart.h`：USART1、PA9/PA10、115200 8N1 等配置。
+- `User/stm32f10x_it.c`：USART1 接收中断回显。
+- `Makefile`：WSL/GCC 编译入口。
+
+串口映射：
+
+```text
+USART1 TX -> PA9  -> CH340 RXD -> Windows COM
+USART1 RX -> PA10 <- CH340 TXD
+```
+
+程序行为：
+
+```text
+蓝灯周期闪烁。
+串口助手持续收到 USART OK。
+串口助手发送字符后，开发板原样回显。
+```
+
+### Lesson 03：EXTI 外部中断
+
+路径：
+
+```text
+lessons/lesson-03-exti/18-EXTI—外部中断
+```
+
+这一课的作用：
+
+- 从按键轮询过渡到按键外部中断。
+- 用 USART1 打印中断事件，避免只靠 RGB LED 观察。
+- 理解 GPIO、EXTI、NVIC、中断向量表、IRQHandler 的关系。
+
+关键文件：
+
+- `User/main.c`：初始化 LED、USART1 和 EXTI，然后空循环等待中断。
+- `User/Key/bsp_exti.c`：配置 K1/K2 GPIO、EXTI 线和 NVIC。
+- `User/Key/bsp_exti.h`：K1/K2 引脚、中断线、中断入口定义。
+- `User/stm32f10x_it.c`：EXTI0/EXTI15_10 中断服务函数，打印 `KEY1 IRQ` / `KEY2 IRQ`。
+- `startup_gcc.s`：包含外设中断向量表，使 EXTI 中断能跳到正确处理函数。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-03-exti start。
+按 K1 后串口打印 KEY1 IRQ，并翻转红色 LED 通道。
+按 K2 后串口打印 KEY2 IRQ，并翻转绿色 LED 通道。
+```
+
 ## 学习计划
 
 1. 标准外设库与板级基础：
    - GPIO 输出 LED
    - GPIO 输入按键轮询
-   - EXTI 外部中断
    - USART 串口
+   - EXTI 外部中断
    - SysTick/定时器
 2. FreeRTOS 基础概念：
    - RTOS 是什么
