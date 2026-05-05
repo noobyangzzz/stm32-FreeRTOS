@@ -17,6 +17,15 @@
   
 #include "bsp_key.h"  
 
+static void Key_Delay(void)
+{
+	__IO uint32_t i;
+
+	for (i = 0; i < 0x0FFFF; i++)
+	{
+	}
+}
+
 /**
   * @brief  配置按键用到的I/O口
   * @param  无
@@ -56,8 +65,21 @@ uint8_t Key_Scan(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin)
 	/*检测是否有按键按下 */
 	if(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON )  
 	{	 
+		Key_Delay();
+		
+		/*再次确认按键仍处于按下状态，过滤按下瞬间的抖动 */
+		if(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) != KEY_ON)
+			return KEY_OFF;
+		
 		/*等待按键释放 */
-		while(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON);   
+		while(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON);
+		
+		Key_Delay();
+		
+		/*确认已经稳定释放，过滤松手瞬间的抖动 */
+		if(GPIO_ReadInputDataBit(GPIOx,GPIO_Pin) == KEY_ON)
+			return KEY_OFF;
+		
 		return 	KEY_ON;	 
 	}
 	else
