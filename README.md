@@ -46,6 +46,14 @@ make
 
 ## 当前课程
 
+当前进度：
+
+```text
+已完成裸机阶段的 GPIO 输出、GPIO 输入、USART1、EXTI 和 SysTick。
+最近完成：Lesson 04 SysTick 系统滴答定时器。
+Lesson 04 已在 WSL 中使用 arm-none-eabi-gcc 编译通过。
+```
+
 ### Lesson 00：GPIO 输出，点亮 RGB LED
 
 路径：
@@ -190,6 +198,45 @@ Reset 后串口打印 lesson-03-exti start。
 按 K2 后串口打印 KEY2 IRQ，并翻转绿色 LED 通道。
 ```
 
+### Lesson 04：SysTick 系统滴答定时器
+
+路径：
+
+```text
+lessons/lesson-04-systick/22-SysTick—系统滴答定时器
+```
+
+这一课的作用：
+
+- 使用 Cortex-M3 内核自带的 SysTick 产生 1ms 系统节拍。
+- 建立裸机阶段的毫秒计时接口。
+- 用 `Delay_ms()` 替代之前不精确的空循环延时。
+- 为后续 FreeRTOS 的系统 tick、任务延时和调度节拍做准备。
+
+关键文件：
+
+- `User/main.c`：初始化 LED、USART1、SysTick，循环翻转蓝灯并打印 tick。
+- `User/SysTick/bsp_systick.c`：SysTick 初始化、tick 计数、毫秒延时实现。
+- `User/SysTick/bsp_systick.h`：SysTick 模块接口。
+- `User/stm32f10x_it.c`：在 `SysTick_Handler()` 中每 1ms 累加 tick。
+- `User/usart/bsp_usart.c`：复用 USART1 串口输出。
+- `Makefile`：WSL/GCC 编译入口。
+
+时钟关系：
+
+```text
+外部 HSE 晶振 8MHz -> PLL x9 -> SystemCoreClock 72MHz
+SysTick_Config(SystemCoreClock / 1000) -> 每 1ms 触发一次 SysTick 中断
+```
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-04-systick start。
+蓝灯每 500ms 翻转一次。
+串口每 500ms 打印当前 tick，数值大约每次增加 500。
+```
+
 ## 学习计划
 
 1. 标准外设库与板级基础：
@@ -235,4 +282,3 @@ make
 5. 选择当前实验生成的 `.hex` 文件并烧录。
 
 如果 CoFlash 不能直接打开 WSL 路径，可以先把 `.hex` 复制到普通 Windows 文件夹再选择。
-
