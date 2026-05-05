@@ -1,0 +1,36 @@
+# Build outputs
+build/
+**/build/
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+*.map
+
+# Keil generated/user-local files
+*.uvoptx
+*.Administrator
+*.bak
+*.dep
+JLinkLog.txt
+Listings/
+Objects/
+
+# Vendor archives, manuals, installers and bundled course material
+*.pdf
+*.zip
+*.rar
+*.7z
+*.exe
+*.EXE
+*.pack
+*.pptx
+*.xlsx
+野火【STM32F103开发板-指南者】资料/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
