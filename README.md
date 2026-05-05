@@ -236,12 +236,3 @@ make
 
 如果 CoFlash 不能直接打开 WSL 路径，可以先把 `.hex` 复制到普通 Windows 文件夹再选择。
 
-## 项目专属 skill
-
-当前项目的 Codex skill 存放在：
-
-```text
-/home/yang/.codex/skills/stm32-freertos-guide
-```
-
-它记录了开发板假设、资料映射、课程路线和“WSL 编译、Windows 烧录”的工作方式。
