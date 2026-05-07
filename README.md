@@ -50,7 +50,8 @@ make
 
 ```text
 已完成裸机阶段的 GPIO 输出、GPIO 输入、USART1、EXTI 和 SysTick。
-最近完成：Lesson 04 SysTick 系统滴答定时器。
+正在进入 RTOS 内核概念层：Lesson 06 任务定义与任务切换的最小模型。
+最近完成：Lesson 05 裸机系统与多任务系统。
 Lesson 04 已在 WSL 中使用 arm-none-eabi-gcc 编译通过。
 ```
 
@@ -236,6 +237,41 @@ Reset 后串口打印 lesson-04-systick start。
 蓝灯每 500ms 翻转一次。
 串口每 500ms 打印当前 tick，数值大约每次增加 500。
 ```
+
+### Lesson 05：裸机系统与多任务系统
+
+路径：
+
+```text
+lessons/lesson-05-baremetal-vs-rtos
+```
+
+这一课的作用：
+
+- 从裸机主循环过渡到 RTOS 思维。
+- 对比轮询系统、前后台系统和多任务系统。
+- 理解 `Delay_ms()` 和 `vTaskDelay()` 的本质区别。
+- 建立 SysTick、PendSV、SVC 在 FreeRTOS 中的直觉认识。
+
+本课不生成固件，不需要烧录。
+
+### Lesson 06：任务定义与任务切换的最小模型
+
+路径：
+
+```text
+lessons/lesson-06-task-switching-model
+```
+
+这一课的作用：
+
+- 理解任务函数为什么通常是 `while(1)` 且不能返回。
+- 理解每个任务为什么需要独立任务栈。
+- 理解任务控制块 TCB 的最小作用。
+- 建立上下文切换的基本链路：保存当前任务现场，再恢复下一个任务现场。
+- 建立 SysTick、PendSV 和任务切换之间的关系。
+
+本课不生成固件，不需要烧录。
 
 ## 学习计划
 
