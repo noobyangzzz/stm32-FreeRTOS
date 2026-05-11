@@ -50,8 +50,8 @@ make
 
 ```text
 已完成裸机阶段的 GPIO 输出、GPIO 输入、USART1、EXTI 和 SysTick。
-正在进入 RTOS 内核概念层：Lesson 06 任务定义与任务切换的最小模型。
-最近完成：Lesson 05 裸机系统与多任务系统。
+已完成 FreeRTOS 概念阶段：裸机与 RTOS、任务切换模型、临界段、空闲任务与阻塞延时。
+最近完成：Lesson 09 建立 STM32 FreeRTOS 工程模板。
 Lesson 04 已在 WSL 中使用 arm-none-eabi-gcc 编译通过。
 ```
 
@@ -272,6 +272,77 @@ lessons/lesson-06-task-switching-model
 - 建立 SysTick、PendSV 和任务切换之间的关系。
 
 本课不生成固件，不需要烧录。
+
+### Lesson 07：临界段保护
+
+路径：
+
+```text
+lessons/lesson-07-critical-section
+```
+
+这一课的作用：
+
+- 理解临界资源和临界段。
+- 理解共享变量的“读-改-写”为什么可能被任务切换或中断打断。
+- 理解 FreeRTOS 为什么通过屏蔽中断保护临界段。
+- 建立 `BASEPRI`、临界段嵌套和“临界段必须尽量短”的基本认识。
+
+本课不生成固件，不需要烧录。
+
+### Lesson 08：空闲任务与阻塞延时
+
+路径：
+
+```text
+lessons/lesson-08-idle-task-and-block-delay
+```
+
+这一课的作用：
+
+- 对比裸机 `Delay_ms()` 和 RTOS `vTaskDelay()`。
+- 理解运行态、就绪态、阻塞态。
+- 理解任务延时信息为什么记录在 TCB 中。
+- 理解空闲任务为什么是 RTOS 的兜底任务。
+- 理解 SysTick 如何推进系统时间，并让延时到期的任务重新就绪。
+
+本课不生成固件，不需要烧录。
+
+### Lesson 09：建立 STM32 FreeRTOS 工程模板
+
+路径：
+
+```text
+lessons/lesson-09-freertos-template/13-FreeRTOS移植工程模板
+```
+
+这一课的作用：
+
+- 在 STM32F103VET6 工程中加入 FreeRTOS v9.0.0 核心源码。
+- 使用 FreeRTOS 官方 GCC/ARM_CM3 port 适配 WSL 编译。
+- 配置 `FreeRTOSConfig.h`。
+- 让 FreeRTOS 接管 `SVC_Handler`、`PendSV_Handler` 和 `SysTick_Handler`。
+- 创建 LED 任务和 USART 任务，通过 tick 串口日志验证 `vTaskDelay()`、任务优先级和调度现象。
+
+关键文件：
+
+- `User/main.c`：初始化 LED/USART，创建 `LedTask` 和 `UsartTask`，启动 FreeRTOS 调度器。
+- `User/FreeRTOSConfig.h`：配置 tick、堆大小、任务 API、中断优先级和 SVC/PendSV/SysTick 映射。
+- `FreeRTOS/Source/tasks.c`：任务创建、任务阻塞、任务调度核心。
+- `FreeRTOS/Source/portable/GCC/ARM_CM3/port.c`：Cortex-M3 平台相关调度入口。
+- `FreeRTOS/Source/portable/MemMang/heap_4.c`：FreeRTOS 动态内存分配。
+- `Makefile`：WSL/GCC 编译入口。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-09-freertos-template start。
+LedTask 大约每 500 tick 翻转一次蓝灯，并打印 [tick xxx] LedTask: toggle LED3。
+UsartTask 大约每 1000 tick 打印 [tick xxx] UsartTask: task running。
+两个任务同时就绪时，优先级更高的 LedTask 先运行。
+```
+
+本课开始重新生成可烧录固件。
 
 ## 学习计划
 
