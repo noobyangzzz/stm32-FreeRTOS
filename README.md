@@ -51,7 +51,7 @@ make
 ```text
 已完成裸机阶段的 GPIO 输出、GPIO 输入、USART1、EXTI 和 SysTick。
 已完成 FreeRTOS 概念阶段：裸机与 RTOS、任务切换模型、临界段、空闲任务与阻塞延时。
-当前进行：Lesson 19 事件组 Event Group。
+当前进行：Lesson 24 FreeRTOS 运行状态与调试。
 Lesson 04 已在 WSL 中使用 arm-none-eabi-gcc 编译通过。
 ```
 
@@ -641,6 +641,158 @@ Reset 后串口打印 lesson-19-event-group start。
 EventTaskA 每 1000ms 设置 bit A。
 EventTaskB 每 1500ms 设置 bit B。
 WaitTask 等 bit A 和 bit B 都满足后打印日志并翻转 LED3。
+```
+
+### Lesson 20：软件定时器 Software Timer
+
+路径：
+
+```text
+lessons/lesson-20-software-timer/24-FreeRTOS软件定时器
+```
+
+这一课的作用：
+
+- 创建周期软件定时器 `xTimerCreate()`。
+- 使用 `xTimerStart()` 启动软件定时器。
+- 通过 `TimerCallback()` 观察定时器周期到期。
+- 理解软件定时器回调函数运行在 Timer Service Task 中，而不是中断中。
+
+关键文件：
+
+- `User/main.c`：创建 periodic_timer，启动定时器，定时器回调中打印 tick 并翻转 LED3。
+- `User/FreeRTOSConfig.h`：打开 `configUSE_TIMERS`。
+- `Makefile`：新增编译 `FreeRTOS/Source/timers.c`，生成 `lesson-20-software-timer` 固件。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-20-software-timer start。
+TimerCallback 每 1000ms 被调用一次。
+每次回调打印 [tick xxx] TimerCallback: periodic timer expired。
+LED3 蓝灯每 1000ms 翻转一次。
+```
+
+### Lesson 21：任务通知 Task Notification
+
+路径：
+
+```text
+lessons/lesson-21-task-notification/25-FreeRTOS任务通知
+```
+
+这一课的作用：
+
+- 使用 `TaskHandle_t` 保存被通知任务的句柄。
+- 使用 `xTaskNotifyGive()` 给目标任务发送通知。
+- 使用 `ulTaskNotifyTake()` 阻塞等待任务通知。
+- 理解任务通知可以在一对一同步场景下替代二值信号量。
+
+关键文件：
+
+- `User/main.c`：创建 NotifyTask 和 WaitTask，NotifyTask 周期性通知 WaitTask。
+- `Makefile`：生成 `lesson-21-task-notification` 固件。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-21-task-notification start。
+NotifyTask 每 1000ms 发送一次任务通知。
+WaitTask 收到通知后打印 take notification，并翻转 LED3。
+WaitTask 没有通知时阻塞等待，不占用 CPU。
+```
+
+### Lesson 22：中断中使用任务通知 FromISR
+
+路径：
+
+```text
+lessons/lesson-22-from-isr-notification/26-FreeRTOS中断任务通知
+```
+
+这一课的作用：
+
+- 把 EXTI 按键中断和 FreeRTOS 任务通知结合起来。
+- 在中断服务函数中使用 `xTaskNotifyFromISR()` 通知任务。
+- 在任务中使用 `xTaskNotifyWait()` 等待中断发来的通知 bit。
+- 理解 `pxHigherPriorityTaskWoken` 和 `portYIELD_FROM_ISR()` 的作用。
+- 理解调用 FromISR API 的中断优先级规则。
+
+关键文件：
+
+- `User/main.c`：创建 KeyWaitTask 和 HeartbeatTask，并提供 `NotifyKeyTaskFromISR()`。
+- `User/stm32f10x_it.c`：KEY1/KEY2 中断服务函数清除 EXTI 标志并通知任务。
+- `User/Key/bsp_exti.c`：配置 K1/K2 GPIO、EXTI 和 NVIC 中断优先级。
+- `Makefile`：加入 `User/Key/bsp_exti.c` 和 `stm32f10x_exti.c`。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-22-from-isr-notification start。
+不按键时，HeartbeatTask 每 2000ms 打印 system running 并翻转 LED3。
+按 K1 后，EXTI0 中断通知 KeyWaitTask，KeyWaitTask 打印 notify bits=0x1 并翻转红灯。
+按 K2 后，EXTI15_10 中断通知 KeyWaitTask，KeyWaitTask 打印 notify bits=0x2 并翻转绿灯。
+```
+
+### Lesson 23：FreeRTOS 内存与任务栈
+
+路径：
+
+```text
+lessons/lesson-23-memory-stack/27-FreeRTOS内存与任务栈
+```
+
+这一课的作用：
+
+- 理解 FreeRTOS heap 和每个任务 stack 的区别。
+- 使用 `xPortGetFreeHeapSize()` 查看当前 heap 剩余。
+- 使用 `xPortGetMinimumEverFreeHeapSize()` 查看历史最低 heap 剩余。
+- 使用 `uxTaskGetStackHighWaterMark()` 查看任务栈水位。
+- 打开 malloc failed hook 和 stack overflow hook，建立故障观测点。
+
+关键文件：
+
+- `User/main.c`：创建 WorkerTask 和 MonitorTask，周期打印 heap/stack 信息。
+- `User/FreeRTOSConfig.h`：打开 `INCLUDE_uxTaskGetStackHighWaterMark`、`configUSE_MALLOC_FAILED_HOOK`、`configCHECK_FOR_STACK_OVERFLOW`。
+- `Makefile`：生成 `lesson-23-memory-stack` 固件。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-23-memory-stack start。
+WorkerTask 每 500ms 翻转 LED3，并使用较大的局部数组消耗一部分任务栈。
+MonitorTask 每 2000ms 申请 2600 bytes heap，并打印 heap_free、heap_min、worker_stack_free_words、monitor_stack_free_words。
+```
+
+### Lesson 24：FreeRTOS 运行状态与调试
+
+路径：
+
+```text
+lessons/lesson-24-runtime-debug/28-FreeRTOS运行状态与调试
+```
+
+这一课的作用：
+
+- 使用 `uxTaskGetNumberOfTasks()` 查看任务数量。
+- 使用 `uxTaskPriorityGet()` 查看任务优先级。
+- 使用 `eTaskGetState()` 查看任务状态。
+- 使用 `uxTaskGetStackHighWaterMark()` 查看任务栈水位。
+- 周期性输出系统运行状态报告。
+
+关键文件：
+
+- `User/main.c`：创建 FastTask、SlowTask 和 MonitorTask，周期打印运行状态。
+- `User/FreeRTOSConfig.h`：打开 `INCLUDE_uxTaskPriorityGet` 和 `INCLUDE_eTaskGetState`。
+- `Makefile`：生成 `lesson-24-runtime-debug` 固件。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-24-runtime-debug start。
+FastTask 每 500ms 翻转 LED3。
+SlowTask 每 3000ms 打印 periodic work。
+MonitorTask 每 2000ms 打印任务数量、heap、任务优先级、任务状态和栈水位。
 ```
 
 ## 学习计划
