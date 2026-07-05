@@ -51,7 +51,7 @@ make
 ```text
 已完成裸机阶段的 GPIO 输出、GPIO 输入、USART1、EXTI 和 SysTick。
 已完成 FreeRTOS 概念阶段：裸机与 RTOS、任务切换模型、临界段、空闲任务与阻塞延时。
-当前进行：Lesson 24 FreeRTOS 运行状态与调试。
+当前进行：Lesson 25 FreeRTOS 综合小实验。
 Lesson 04 已在 WSL 中使用 arm-none-eabi-gcc 编译通过。
 ```
 
@@ -793,6 +793,40 @@ Reset 后串口打印 lesson-24-runtime-debug start。
 FastTask 每 500ms 翻转 LED3。
 SlowTask 每 3000ms 打印 periodic work。
 MonitorTask 每 2000ms 打印任务数量、heap、任务优先级、任务状态和栈水位。
+```
+
+### Lesson 25：FreeRTOS 综合小实验
+
+路径：
+
+```text
+lessons/lesson-25-final-project/29-FreeRTOS综合小实验
+```
+
+这一课的作用：
+
+- 把 USART、LED、EXTI、任务通知、软件定时器、互斥量和运行状态监控组合成一个小系统。
+- 使用按键中断通知 `ControlTask`，由任务处理模式切换。
+- 使用软件定时器周期通知 `ControlTask` 打印系统状态。
+- 使用 `MonitorTask` 周期输出 heap、stack 和 task state。
+- 使用 mutex 保护串口输出，避免多个任务打印交叉。
+
+关键文件：
+
+- `User/main.c`：综合实验主逻辑，创建 ControlTask、HeartbeatTask、MonitorTask 和 status_timer。
+- `User/stm32f10x_it.c`：K1/K2 中断服务函数，调用 `NotifyKeyTaskFromISR()`。
+- `User/Key/bsp_exti.c`：配置 K1/K2 EXTI 和 NVIC。
+- `User/FreeRTOSConfig.h`：打开 timers、mutex、任务状态查询、栈水位查询和 hook。
+- `Makefile`：生成 `lesson-25-final-project` 固件。
+
+程序行为：
+
+```text
+Reset 后串口打印 lesson-25-final-project start。
+HeartbeatTask 按当前模式翻转蓝灯 LED3。
+按 K1 在 SLOW 和 FAST 心跳模式之间切换。
+按 K2 打开或关闭软件定时器状态上报。
+MonitorTask 每 5000ms 打印任务数量、heap、任务状态、优先级和栈水位。
 ```
 
 ## 学习计划
